@@ -4,3 +4,4 @@ uvicorn
 sqlalchemy
 metagpt
 rich
+metagpt[rag]
