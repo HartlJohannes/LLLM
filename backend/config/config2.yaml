@@ -1,6 +1,6 @@
 llm:
   api_type: 'ollama' # or azure / ollama / groq etc. Check LLMType for more options
-  model: 'llama3' # or gpt-3.5-turbo
+  model: 'mixtral' # or gpt-3.5-turbo
   base_url: 'https://7e28-188-241-30-201.ngrok-free.app/api'
   #base_url: 'http://127.0.0.1:11434/api' # or forward url / other llm url
   api_key: 'ollama'

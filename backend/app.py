@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from configurations import Configuration
 from agents import sessions
 from argparse import ArgumentParser
+import asyncio
 
 app = FastAPI()
 
@@ -124,9 +125,7 @@ async def read_session(session_key: str):
     session = sessions.Cache.locate(session_key)
     if not session:
         return HTTPException(status_code=400, detail='session not found')
-    print(session.team)
-    print(session.team.history)
-    return session.team.history
+    return await session.history()
 
 @app.post("/session/send")
 async def send_session(session_key: str, prompt: str):
@@ -138,6 +137,8 @@ async def send_session(session_key: str, prompt: str):
     :return: response from session team
     """
     session = sessions.Cache.locate(session_key)
+    print(session.uid)
+    print(session.team)
     if not session:
         return HTTPException(status_code=400, detail="session not found")
     return await session.send(prompt)
@@ -197,6 +198,16 @@ if __name__ == "__main__":
     )
     parser.add_argument('-p', '--port', default=3000, type=int, dest='port')
     args = parser.parse_args()
+
+    async def main():
+        print('searching')
+        session = sessions.Cache.locate('f8716a63-1991-47af-ab8f-826f7476c723')
+        print(session)
+        await session.send('Tell me about rocks')
+        session2 = sessions.Cache.locate('f8716a63-1991-47af-ab8f-826f7476c723')
+        print(session, session2)
+        print(session2.team.history)
+    #asyncio.run(main())
 
     # run app (duh!)
     uvicorn.run(app, host="0.0.0.0", port=args.port)

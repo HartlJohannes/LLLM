@@ -23,6 +23,20 @@ class ChatRole(BaseRole):
     def __init__(self):
         super().__init__(actions=[ChatAction])
 
+    def set_history(self, history: list[tuple[str, str]]) -> None:
+        """
+        Overwrites the message history
+
+        :param history: new message history
+        :return: none
+        """
+        for role, message in history:
+            if role == 'User':
+                memory = f'\\[Prompt] {message} \\[/prompt]\n'
+            elif role == 'Bot':
+                memory = f'\\[Answer] {message} \\[/Answer]\n'
+            self.rc.memory.add(Message(content=memory, role=role))
+
     async def run(self, *args, **kwargs) -> Message:
         self.rc.todo = self.actions[0]
         rsp = await self._act(prompt=kwargs.get('prompt'))
@@ -145,7 +159,22 @@ class Team:
                  history: list[tuple[str, str]] = None):
         self.agents = agents
         self.supervisors = supervisors
-        self.history = history or list()
+        self._history = history or list()
+
+    @property
+    def history(self):
+        return self._history
+
+    @history.setter
+    def history(self, history) -> None:
+        """
+        Overwrite the chat history
+
+        :param history: new chat history
+        :return: none
+        """
+        for agent in self.agents:
+            agent.set_history(history)
 
     async def __supervisors_run(self, prompt, answer, chat_history) -> list[dict]:
         """
@@ -280,6 +309,11 @@ class Team:
 
     async def __call__(self, prompt) -> str:
         self.history.append(('User', prompt))
+        print(self.history)
         response = await self.__run(prompt)
         self.history.append(('Bot', response))
+        print(self.history)
         return response
+
+    def __repr__(self):
+        return f'<Team: agents={len(self.agents)}, supervisors={len(self.supervisors)}>'

@@ -5,6 +5,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, Text
 from pathlib import Path
 import pickle
 from configurations import Configuration
+import json
 
 THIS_DIR = Path(__file__).parent
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{THIS_DIR}/sessions.sqlite"
@@ -19,6 +20,7 @@ tables = {
         Column("uid", Integer, primary_key=True),
         Column("config_uid", Integer),
         Column("session_key", String),
+        Column("history", Text),
         Column("name", String, nullable=True),
         Column("team", Text, nullable=False),
         extend_existing=True,
@@ -31,7 +33,7 @@ metadata.create_all(bind=engine)
 
 class Session:
     def __init__(self, config_uid: int, session_key: str | None = None, uid: int | None = None,
-                 name: str | None = None):
+                 name: str | None = None, history: list[tuple[str, str]] | None = None):
         # configuration uid
         self.config_uid = config_uid
         # session key
@@ -45,10 +47,11 @@ class Session:
         self._agent_count = self._config.agent_count
         self._supervisor_count = self._config.supervisor_count
         self._team = None
+        self.team.history = list()
 
     @property
     def exists(self) -> bool:
-        return True if Session.find(self.key) else False
+        return True if Session.check(self.key) else False
 
     @property
     def team(self):
@@ -62,8 +65,7 @@ class Session:
                 pickle_team = conn.execute(
                     sql.select(tables["sessions"].c.team).where(tables["sessions"].c.session_key == self.key)
                 ).first()[0]
-                self._team = pickle.loads(pickle_team, fix_imports=True, encoding="ASCII", errors="strict",
-                                          buffers=None)
+                self._team = pickle.loads(pickle_team)
                 return self._team
 
         else:
@@ -81,7 +83,17 @@ class Session:
         :param msg: message to send
         :return: None
         """
-        return await self.team(msg)
+        response = await self.team(msg)
+        self.save()
+        return response
+
+    async def history(self):
+        """
+        Retrieve the history of the session
+
+        :return: list of messages
+        """
+        return self.team.history
 
     def save(self) -> None:
         """
@@ -104,8 +116,9 @@ class Session:
                     session_table.update().where(session_table.c.uid == self.uid).values(
                         session_key=self.key,
                         config_uid=self.config_uid,
-                        team=pickle.dumps(self._team, protocol=None, fix_imports=True, buffer_callback=None),
-                        name=self.name
+                        team=pickle.dumps(self._team),
+                        name=self.name,
+                        history=json.dumps(self.team.history)
                     )
                 )
             else:
@@ -115,11 +128,12 @@ class Session:
                         config_uid=self.config_uid,
                         session_key=self.key,
                         team=pickle.dumps(self._team, protocol=None, fix_imports=True, buffer_callback=None),
-                        name=self.name
+                        name=self.name,
+                        history=json.dumps(self.team.history)
                     )
                 )
                 self.uid = rows.inserted_primary_key[0]
-                conn.commit()
+            conn.commit()
 
     @property
     def config(self):
@@ -176,12 +190,31 @@ class Session:
                 sql.select(
                     session_table.c.config_uid,
                     session_table.c.session_key,
-                    session_table.c.name
+                    session_table.c.uid,
+                    session_table.c.name,
+                    session_table.c.history,
                 ).where(session_table.c.uid == uid)
             ).first()
             if not row:
                 return None
-            return Session(row[0], row[1], name=row[2])
+            return Session(config_uid=row[0], session_key=row[1], uid=row[2], name=row[3], history=json.loads(row[4]))
+
+    @staticmethod
+    def check(session_key: str) -> bool:
+        """
+        Check whether a session is in the database
+
+        :param session_key: Session key
+        :return: True if found, False otherwise
+        """
+        # table for sessions
+        session_table = tables["sessions"]
+        # search in database
+        with engine.connect() as conn:
+            row = conn.execute(
+                sql.select(session_table.c.uid).where(session_table.c.session_key == session_key)
+            ).first()
+            return True if row else False
 
     @staticmethod
     def find(session_key: str):
@@ -199,19 +232,21 @@ class Session:
                 sql.select(
                     session_table.c.config_uid,
                     session_table.c.session_key,
-                    session_table.c.name
+                    session_table.c.uid,
+                    session_table.c.name,
+                    session_table.c.history,
                 ).where(session_table.c.session_key == session_key)
             ).first()
             if not row:
                 return None
-            return Session(row[0], row[1], name=row[2])
+            return Session(config_uid=row[0], session_key=row[1], uid=row[2], name=row[3], history=json.loads(row[4]))
 
     @staticmethod
     def __gen_session_key():
         return str(uuid4())
 
     def __repr__(self):
-        return f'<Session: {self.key}>'
+        return f'<Session: {self.key}\\[exists: {self.exists}, uid: {self.uid}]>'
 
 
 class Cache:
