@@ -18,7 +18,34 @@ async def status():
 async def root():
     return """
     <style>
-        html { background-color: black; color: white; font-family: Arial; }
+        html { 
+            color: white; 
+            font-family: Arial; 
+            background: #121212; /* Fallback for browsers that don't support gradients */
+            background: linear-gradient(
+                135deg,
+                #121212 25%,
+                #1a1a1a 25%,
+                #1a1a1a 50%,
+                #121212 50%,
+                #121212 75%,
+                #1a1a1a 75%,
+                #1a1a1a
+            );
+            background-size: 40px 40px;
+        
+            animation: move 4s linear infinite;
+        }
+                
+        @keyframes move {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 40px 40px;
+            }
+        }
+
         h1 { font-weight: bold; }
         a { text-decoration: none; color: #fcba03; font-weight: bold; }
         body { margin: 2rem; }
@@ -97,6 +124,8 @@ async def read_session(session_key: str):
     session = sessions.Cache.locate(session_key)
     if not session:
         return HTTPException(status_code=400, detail='session not found')
+    print(session.team)
+    print(session.team.history)
     return session.team.history
 
 @app.post("/session/send")
@@ -111,7 +140,7 @@ async def send_session(session_key: str, prompt: str):
     session = sessions.Cache.locate(session_key)
     if not session:
         return HTTPException(status_code=400, detail="session not found")
-    return session.send(prompt)
+    return await session.send(prompt)
 
 
 @app.get("/cfg/{uid}")
@@ -122,7 +151,7 @@ async def alt_pluck_config(uid: int):
     :param uid: UID of the configuration
     :return: the configuration if found else 404
     """
-    return pluck_config(uid)
+    return await pluck_config(uid)
 
 
 @app.post("/session/open")
@@ -166,7 +195,8 @@ if __name__ == "__main__":
         description="Lumin API server",
         epilog="Lumin API server help"
     )
-    #parser.add_argument()
+    parser.add_argument('-p', '--port', default=3000, type=int, dest='port')
+    args = parser.parse_args()
 
     # run app (duh!)
-    uvicorn.run(app, host="0.0.0.0")  #, port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=args.port)

@@ -6,7 +6,6 @@ from pathlib import Path
 import pickle
 from configurations import Configuration
 
-
 THIS_DIR = Path(__file__).parent
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{THIS_DIR}/sessions.sqlite"
 
@@ -31,7 +30,8 @@ metadata.create_all(bind=engine)
 
 
 class Session:
-    def __init__(self, config_uid: int, session_key: str | None = None, uid: int | None = None, name: str | None = None):
+    def __init__(self, config_uid: int, session_key: str | None = None, uid: int | None = None,
+                 name: str | None = None):
         # configuration uid
         self.config_uid = config_uid
         # session key
@@ -48,21 +48,22 @@ class Session:
 
     @property
     def exists(self) -> bool:
-        return True if Session.grab(self.config_uid) else False
+        return True if Session.find(self.key) else False
 
     @property
     def team(self):
         if self._team:
             # team already loaded into memory
             return self._team
-        print(self.exists)
+
         if self.exists:
             # find the team in database and load it into memory
             with engine.connect() as conn:
                 pickle_team = conn.execute(
-                    sql.select(tables["sessions"].c.team).where(tables["sessions"].c.uid == self.uid)
+                    sql.select(tables["sessions"].c.team).where(tables["sessions"].c.session_key == self.key)
                 ).first()[0]
-                self._team = pickle.loads(pickle_team, fix_imports=True, encoding="ASCII", errors="strict", buffers=None)
+                self._team = pickle.loads(pickle_team, fix_imports=True, encoding="ASCII", errors="strict",
+                                          buffers=None)
                 return self._team
 
         else:
@@ -80,7 +81,7 @@ class Session:
         :param msg: message to send
         :return: None
         """
-        await self.team(msg)
+        return await self.team(msg)
 
     def save(self) -> None:
         """
@@ -99,7 +100,7 @@ class Session:
         with engine.connect() as conn:
             if self.exists:
                 # update row in database
-                rows = conn.execute(
+                row = conn.execute(
                     session_table.update().where(session_table.c.uid == self.uid).values(
                         session_key=self.key,
                         config_uid=self.config_uid,
@@ -107,10 +108,9 @@ class Session:
                         name=self.name
                     )
                 )
-                self.uid = rows.inserted_primary_key[0]
             else:
                 # insert row into database
-                conn.execute(
+                rows = conn.execute(
                     session_table.insert().values(
                         config_uid=self.config_uid,
                         session_key=self.key,
@@ -118,6 +118,7 @@ class Session:
                         name=self.name
                     )
                 )
+                self.uid = rows.inserted_primary_key[0]
                 conn.commit()
 
     @property
@@ -159,8 +160,6 @@ class Session:
             )
         return [row[0] for row in rows]
 
-
-
     @staticmethod
     def grab(uid: int):
         """
@@ -182,7 +181,7 @@ class Session:
             ).first()
             if not row:
                 return None
-            return Session(row[0],  row[1], name=row[2])
+            return Session(row[0], row[1], name=row[2])
 
     @staticmethod
     def find(session_key: str):
@@ -217,6 +216,7 @@ class Session:
 
 class Cache:
     cache: dict[str, Session] = dict()
+
     @staticmethod
     def find(session_key: str) -> Session | None:
         """
@@ -246,7 +246,6 @@ class Cache:
         :return: None
         """
         Cache.cache[session.key] = session
-
 
     @staticmethod
     def locate(session_key: str) -> Session | None:
