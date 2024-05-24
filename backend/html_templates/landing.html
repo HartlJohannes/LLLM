@@ -4,25 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>HTML 5 Boilerplate</title>
-    <script type="text/javascript">
-        const input = document.getElementById('input');
-        const msgAnswer = document.querySelector('.msg-answer');
-
-        input.addEventListener('keyup', async (e) => {
-            if (e.key === 'Enter') {
-                const response = await fetch('/api/ask', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ question: input.value })
-                });
-                const data = await response.json();
-                msgAnswer.innerHTML = data.answer;
-            }
-        });
-    </script>
+    <title>Lumin API</title>
     <style>
         html {
             color: white;
@@ -53,7 +35,9 @@
         }
 
         h1 { font-weight: bold; }
-        a { text-decoration: none; color: #fcba03; font-weight: bold; }
+        a { text-decoration: none; color: #32a852; font-weight: bold; transition: .2s; }
+        a:hover { color: #5cd67d; }
+        li { margin: .5rem; }
         body { margin: 2rem; }
 
         .msg-box {
@@ -62,6 +46,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            display: grid;
         }
         input {
             display: grid;
@@ -74,21 +59,59 @@
             align-content: center;
             width: 20vw;
             transition: .3s;
+            justify-self: center;
+            background-color: #32a852;
         }
-        input:focus, textarea:active {
+        input:focus, input:active, input[disabled] {
             width: 50vw;
+            background-color: #5cd67d;
+        }
+        input[disabled] {
+            animation: color-wave 3s infinite;
+        }
+        @keyframes color-wave {
+            0% {
+                background-color: #5cd67d;
+            }
+            50% {
+                background-color: #32a852;
+            }
+            100% {
+                background-color: #5cd67d;
+            }
         }
         .msg-answer {
             width: 20vw;
-            background-color: white;
-            height: 30vh;
-            transition: .3s;
+            height: fit-content;
+            transition: .5s;
             border-radius: 2rem;
             margin-top: 2rem;
-            padding: 1rem;
+            padding: 1.5rem;
+            font-size: 1rem;
+            color: black;
+            justify-self: center;
+            background-color: #ffffff0a;
         }
-        input:focus+.msg-answer, input:active+.msg-answer {
+        input:focus ~ .msg-answer, input:active ~ .msg-answer {
+            background-color: #ffffff10;
+        }
+        input[disabled] ~ .msg-answer {
+            animation: msg-color-wave 1.5s infinite;
+        }
+        @keyframes msg-color-wave {
+            0% {
+                background-color: #ffffff10;
+            }
+            50% {
+                background-color: #ffffff0a;
+            }
+            100% {
+                background-color: #ffffff10;
+            }
+        }
+        .msg-answer[content] {
             width: 50vw;
+            background-color: #32a852 !important;
         }
     </style>
   </head>
@@ -106,4 +129,27 @@
             </div>
         </div>
     </body>
+
+    <script type="text/javascript" defer>
+        const input = document.getElementById('input');
+        const msgAnswer = document.querySelector('.msg-answer');
+
+        input.addEventListener('keyup', async (e) => {
+            console.log(e)
+            if (e.key === 'Enter') {
+                input.setAttribute('disabled', 'true')
+                prompt = input.value
+                const response = await fetch('/nosession/send?prompt='+prompt, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                });
+                const data = await response.json();
+                msgAnswer.innerText = data;
+                msgAnswer.setAttribute('content', 'true')
+                input.removeAttribute('disabled')
+            }
+        });
+    </script>
 </html>
