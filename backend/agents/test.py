@@ -1,5 +1,5 @@
 from templates import BaseDynamicAction, BaseRole
-from agents import ChatRole, SupervisorRole
+from agents.templates import ChatRole, SupervisorRole
 import asyncio
 from agents import Team
 from metagpt.logs import logger
@@ -18,8 +18,5 @@ if __name__ == '__main__':
 
         while print('[bold green]+++ [/]', end='') or (prompt:=input('')):
             print(f'[green]{await team(prompt)}[/]')
-
-            #else:
-                #print(f'[cyan]{result.content}[/]')
 
     asyncio.run(main())
