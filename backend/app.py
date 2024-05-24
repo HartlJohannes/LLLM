@@ -92,12 +92,10 @@ async def read_session(session_key: str):
     :param session_key: session key
     :return: list of messages
     """
-    return [
-        ('User', 'Hello'),
-        ('Bot', 'Hi there!'),
-        ('User', 'How are you?'),
-        ('Bot', 'I am good, thank you!'),
-    ]
+    session = sessions.Cache.locate(session_key)
+    if not session:
+        return HTTPException(status_code=400, detail='session not found')
+    return session.team.history
 
 @app.post("/session/send")
 async def send_session(session_key: str, prompt: str):
