@@ -1,4 +1,4 @@
-from templates import BaseRole, BaseDynamicAction
+from agents.templates import BaseRole, BaseDynamicAction
 from metagpt.schema import Message
 import json
 from rich import print
@@ -121,7 +121,7 @@ class SupervisorRole(BaseRole):
 
         try:
             rsp.content = json.loads(rsp.content)
-            if not rsp.content.get('chosten'):
+            if not rsp.content.get('chosen'):
                 raise ValueError("No answer chosen")
         except (json.JSONDecodeError, ValueError):
             print(f'[bold red]invalid feedback from supervisor[/]')

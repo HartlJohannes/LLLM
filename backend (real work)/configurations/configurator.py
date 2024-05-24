@@ -27,6 +27,9 @@ tables = {
     ),
 }
 
+# create tables if not exist
+metadata.create_all(bind=engine)
+
 
 class Configuration:
     """
@@ -185,14 +188,9 @@ class Configuration:
 
 
 if __name__ == '__main__':
-    run_option = 'TEST'
-    if run_option == 'TEST':
-        # do some tests
-        test1 = Configuration.grab(2)
-        test1.datasources += ["http://localhost:8080"]
-        test1.save()
-        print(test1)
-        print(test1.datasources)
-    elif run_option == 'CREATE':
-        # create database configuration
-        metadata.create_all(bind=engine)
+    # do some tests
+    test1 = Configuration.grab(2)
+    test1.datasources += ["http://localhost:8080"]
+    test1.save()
+    print(test1)
+    print(test1.datasources)
