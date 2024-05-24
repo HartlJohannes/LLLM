@@ -70,6 +70,15 @@ class Session:
             self.save()
             return self._team
 
+    async def send(self, msg):
+        """
+        Send a message to the team
+
+        :param msg: message to send
+        :return: None
+        """
+        await self.team(msg)
+
     def save(self) -> None:
         """
         Saves the session into the database
@@ -102,6 +111,10 @@ class Session:
                 )
                 conn.commit()
 
+    @property
+    def config(self):
+        return self._config
+
     def delete(self) -> bool:
         """
         Delete the session from the database
@@ -120,6 +133,23 @@ class Session:
             )
             conn.commit()
         return True
+
+    @staticmethod
+    def list() -> list[str]:
+        """
+        Retrieve a list of all session keys
+
+        :return: session keys
+        """
+        # table for sessions
+        session_table = tables["sessions"]
+        # search in database
+        with engine.connect() as conn:
+            rows = conn.execute(
+                sql.select(session_table.c.session_key)
+            )
+        return [row[0] for row in rows]
+
 
 
     @staticmethod
@@ -167,3 +197,50 @@ class Session:
 
     def __repr__(self):
         return f'<Session: {self.key}>'
+
+
+class Cache:
+    cache: dict[str, Session] = dict()
+    @staticmethod
+    def find(session_key: str) -> Session | None:
+        """
+        Find a session in the cache
+
+        :param session_key: session key
+        :return: Session object or None if not found
+        """
+        return Cache.cache.get(session_key)
+
+    @staticmethod
+    def check(session_key: str) -> bool:
+        """
+        Checks whether a session is in the cache
+
+        :param session_key:
+        :return: True if found, False otherwise
+        """
+        return session_key in Cache.cache
+
+    @staticmethod
+    def add(session: Session) -> None:
+        """
+        Add a session to the cache
+
+        :param session: Session object
+        :return: None
+        """
+        Cache.cache[session.key] = session
+
+
+    @staticmethod
+    def locate(session_key: str) -> Session | None:
+        """
+        Locate a session in cache or from db
+
+        :param session_key: session key
+        :return: the session or none
+        """
+        if Cache.check(session_key):
+            return Cache.find(session_key)
+        else:
+            return Session.find(session_key)

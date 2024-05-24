@@ -139,9 +139,11 @@ class SupervisorRole(BaseRole):
 
 class Team:
     def __init__(self, agents: list[ChatRole] | tuple[ChatRole],
-                 supervisors: list[SupervisorRole] | tuple[SupervisorRole]):
+                 supervisors: list[SupervisorRole] | tuple[SupervisorRole],
+                 history: list[tuple[str, str]] = None):
         self.agents = agents
         self.supervisors = supervisors
+        self.history = history or list()
 
     async def __supervisors_run(self, prompt, answer, chat_history) -> list[dict]:
         """
@@ -239,13 +241,13 @@ class Team:
                 correct_responses.append(response)
         return correct_responses
 
-    async def __call__(self, prompt) -> str:
+    async def __run(self, prompt) -> str:
         """
-        Generate output for the prompt
+                Generate output for the prompt
 
-        :param prompt: Prompt to generate output for
-        :return: str
-        """
+                :param prompt: Prompt to generate output for
+                :return: str
+                """
         # gather initial responses
         responses: list[str] = list()
         print('[bold cyan] Generate initial responses for prompt [/]')
@@ -273,3 +275,9 @@ class Team:
             return await self.__supervisor_vote(prompt, correct_responses)
 
         return correct_responses[0]
+
+    async def __call__(self, prompt) -> str:
+        self.history.append(('User', prompt))
+        response = await self.__run(prompt)
+        self.history.append(('Bot', response))
+        return response
