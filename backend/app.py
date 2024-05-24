@@ -6,7 +6,6 @@ from agents import sessions
 
 app = FastAPI()
 
-
 @app.get("/status")
 def read_root():
     return {"status": "up"}
