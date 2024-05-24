@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML 5 Boilerplate</title>
+    <script type="text/javascript">
+        const input = document.getElementById('input');
+        const msgAnswer = document.querySelector('.msg-answer');
+
+        input.addEventListener('keyup', async (e) => {
+            if (e.key === 'Enter') {
+                const response = await fetch('/api/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: input.value })
+                });
+                const data = await response.json();
+                msgAnswer.innerHTML = data.answer;
+            }
+        });
+    </script>
+    <style>
+        html {
+            color: white;
+            font-family: Arial;
+            background: #121212; /* Fallback for browsers that don't support gradients */
+            background: linear-gradient(
+                135deg,
+                #121212 25%,
+                #1a1a1a 25%,
+                #1a1a1a 50%,
+                #121212 50%,
+                #121212 75%,
+                #1a1a1a 75%,
+                #1a1a1a
+            );
+            background-size: 40px 40px;
+
+            animation: move 4s linear infinite;
+        }
+
+        @keyframes move {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 40px 40px;
+            }
+        }
+
+        h1 { font-weight: bold; }
+        a { text-decoration: none; color: #fcba03; font-weight: bold; }
+        body { margin: 2rem; }
+
+        .msg-box {
+            /* align in center */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        input {
+            display: grid;
+            border-radius: 5rem;
+            height: 1.5rem;
+            font-size: 1rem;
+            padding: 1rem;
+            outline: none;
+            border: none;
+            align-content: center;
+            width: 20vw;
+            transition: .3s;
+        }
+        input:focus, textarea:active {
+            width: 50vw;
+        }
+        .msg-answer {
+            width: 20vw;
+            background-color: white;
+            height: 30vh;
+            transition: .3s;
+            border-radius: 2rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+        input:focus+.msg-answer, input:active+.msg-answer {
+            width: 50vw;
+        }
+    </style>
+  </head>
+  <body>
+        <h1>Welcome to Lumin API</h1>
+        <ul>
+            <li><a href="/status">/status</a></li>
+            <li><a href="/docs">/docs</a></li>
+        </ul>
+
+        <div class="msg-box">
+            <input id="input" required placeholder="Type something.."></input>
+            <div class="msg-answer">
+
+            </div>
+        </div>
+    </body>
+</html>

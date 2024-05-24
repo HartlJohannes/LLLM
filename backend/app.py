@@ -4,11 +4,14 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from pydantic import BaseModel
 from configurations import Configuration
 from agents import sessions
+from pathlib import Path
 from argparse import ArgumentParser
 import asyncio
 
-app = FastAPI()
+THIS_DIR = Path(__file__).parent
 
+
+app = FastAPI()
 
 @app.get("/status")
 async def status():
@@ -17,48 +20,8 @@ async def status():
 
 @app.get('/', response_class=HTMLResponse)
 async def root():
-    return """
-    <style>
-        html { 
-            color: white; 
-            font-family: Arial; 
-            background: #121212; /* Fallback for browsers that don't support gradients */
-            background: linear-gradient(
-                135deg,
-                #121212 25%,
-                #1a1a1a 25%,
-                #1a1a1a 50%,
-                #121212 50%,
-                #121212 75%,
-                #1a1a1a 75%,
-                #1a1a1a
-            );
-            background-size: 40px 40px;
-        
-            animation: move 4s linear infinite;
-        }
-                
-        @keyframes move {
-            0% {
-                background-position: 0 0;
-            }
-            100% {
-                background-position: 40px 40px;
-            }
-        }
-
-        h1 { font-weight: bold; }
-        a { text-decoration: none; color: #fcba03; font-weight: bold; }
-        body { margin: 2rem; }
-    </style>
-    <body>
-        <h1>Welcome to Lumin API</h1>
-        <ul>
-            <li><a href="/status">/status</a></li>
-            <li><a href="/docs">/docs</a></li>
-        </ul>
-    </body>
-    """
+    with open(f'{THIS_DIR}/html_templates/landing.html', 'r') as f:
+        return f.read()
 
 
 class WebConfiguration(BaseModel):
@@ -137,11 +100,21 @@ async def send_session(session_key: str, prompt: str):
     :return: response from session team
     """
     session = sessions.Cache.locate(session_key)
-    print(session.uid)
-    print(session.team)
     if not session:
         return HTTPException(status_code=400, detail="session not found")
     return await session.send(prompt)
+
+
+@app.post("/nosession/send")
+async def send_nosession(prompt: str):
+    """
+    Send a message to a team without a session
+
+    :param prompt: message
+    :return: response from team
+    """
+    team = sessions.Team(agents=[sessions.ChatRole()], supervisors=[sessions.SupervisorRole()])
+    return await team(prompt)
 
 
 @app.get("/cfg/{uid}")

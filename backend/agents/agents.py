@@ -309,10 +309,8 @@ class Team:
 
     async def __call__(self, prompt) -> str:
         self.history.append(('User', prompt))
-        print(self.history)
         response = await self.__run(prompt)
         self.history.append(('Bot', response))
-        print(self.history)
         return response
 
     def __repr__(self):
