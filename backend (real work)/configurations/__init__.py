@@ -1,1 +1,0 @@
-from configurations.configurator import Configuration

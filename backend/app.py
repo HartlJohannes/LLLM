@@ -6,6 +6,7 @@ from agents import sessions
 
 app = FastAPI()
 
+
 @app.get("/status")
 def read_root():
     return {"status": "up"}
@@ -111,8 +112,5 @@ def open_session(session_key: str):
 
 
 if __name__ == "__main__":
-    session = sessions.Session.find('0893ce8c-7369-474a-9086-d1a3af8db5ee')
-    print(session)
-    print({'session_key': session.key})
     # run app (duh!)
     uvicorn.run(app, host="0.0.0.0")#, port=8080)

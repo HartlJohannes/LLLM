@@ -1,6 +1,0 @@
-setuptools
-fastapi
-uvicorn
-sqlalchemy
-metagpt
-rich
