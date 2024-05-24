@@ -7,10 +7,11 @@ from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
 
-from templates import BaseDynamicAction, BaseRole
+from templates import BaseDynamicAction, BaseRole, ChatRole
 
 
-def generate_action(name: str, prompt_template: str, output_pattern: str = '.*', classname=None, template: type(Action) = None) -> type(Action):
+def generate_action(name: str, prompt_template: str, output_pattern: str = '.*', classname=None,
+                    template: type(Action) = None) -> type(Action):
     """
     Generate a metagpt action class from the given arguments
 
@@ -47,7 +48,8 @@ def generate_action(name: str, prompt_template: str, output_pattern: str = '.*',
     return action
 
 
-def generate_role(name: str, actions: list[type(Action)], profile: str = None, classname=None, template: type(Action) = None) -> type(Role):
+def generate_role(name: str, actions: list[type(Action)], profile: str = None, classname=None,
+                  template: type(Action) = None) -> type(Role):
     """
     Generate a metagpt role class from the given arguments
 
@@ -84,51 +86,3 @@ def generate_role(name: str, actions: list[type(Action)], profile: str = None, c
         setattr(role, attribute, attributes[attribute])
 
     return role
-
-
-if __name__ == '__main__':
-    from metagpt.context import Context
-
-    # do some testing
-    async def main():
-        prompt = """
-        Plan a list of 2 challenges for a hackathon. 
-        Return a valid markdown list of challenges. 
-        It should only consist of bullet points. 
-        The theme of the hackathon is {theme}.
-        """
-        action1 = generate_action(
-            name='Plan Hackathon',
-            prompt_template=prompt,
-            output_pattern=".*",
-            classname='PlanHackathonAction',
-        )
-        prompt2 = """
-        Is a {food} a sandwich, soup, or salad, or something else.
-        Answer with only either SAND, SOUP, SALA or ELSE respectively.
-        """
-        action2 = generate_action(
-            name='Food Type',
-            prompt_template=prompt2,
-            output_pattern=".*",
-            classname='FoodTypeAction',
-        )
-        context = Context()
-        role = BaseRole(
-            actions=[action1],
-            context=context,
-        )
-
-        theme = "sustainability"
-        logger.info("Theme: " + theme)
-        role.action_context['theme'] = theme
-        role.action_context['theme2'] = theme
-        #role.action_context['food'] = "steak"
-        result = await role.run()
-
-        if not result:
-            logger.error("Failed to generate hackathon challenges")
-        else:
-            logger.info("Result: " + result.content)
-
-    asyncio.run(main())

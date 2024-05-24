@@ -11,33 +11,7 @@ from metagpt.actions import Action
 from metagpt.roles import Role
 from metagpt.schema import Message
 from metagpt.logs import logger
-
-
-class BaseAction(Action):
-    """
-    Base Action class
-    """
-    def __init__(self, pattern: str, prompt: str):
-        """
-        Constructor for BaseAction class
-
-        :param pattern: pattern to match the output
-        :param prompt: prompt to ask the agent
-        """
-        self._pattern = pattern
-        self._prompt = prompt
-
-    async def run(self, example: str, instruction: str):
-        prompt = self._prompt.format(example=example, instruction=instruction)
-        rsp = await self._aask(prompt)
-        result = self.parse(rsp)
-        return result
-
-    def parse(self, rsp):
-        pattern = re.compile(self._pattern, re.DOTALL)
-        match = re.search(self._pattern, rsp)
-        result = match.group(0) if match else ""
-        return result
+import json
 
 
 class BaseRole(Role):
@@ -58,6 +32,17 @@ class BaseRole(Role):
 
         self.action_context: dict = dict()
         self.autoflush: bool = autoflush
+
+        self.set_name()
+
+    def set_name(self):
+        # set a funky name
+        names = [
+            'Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Thomas',
+            'Hannah', 'Ivy', 'Jack', 'Katie', 'Liam', 'Mia', 'Noah', 'Olivia', 'Zaid',
+            'Parker', 'Quinn', 'Ryan', 'Sophia', 'Tyler', 'Uma', 'Victor', 'Willow',
+        ]
+        setattr(self.__class__, 'name', choice(names))
 
     async def run(self):
         for action in self.actions:
@@ -88,12 +73,3 @@ class BaseDynamicAction(Action):
         rsp = await self._aask(prompt)
         result = type(self).match_pattern(rsp)
         return result
-
-
-class ChatRole(BaseRole):
-    """
-    Simple chatbot role
-    """
-    def __init__(self):
-        # get a funky name
-        setattr(self.__class__ , 'name', choice(['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace']))
