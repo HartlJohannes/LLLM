@@ -1,5 +1,5 @@
-from templates import BaseDynamicAction, BaseRole
-from agents.templates import ChatRole, SupervisorRole
+from agents.templates import BaseDynamicAction, BaseRole
+from agents.agents import ChatRole, SupervisorRole
 import asyncio
 from agents import Team
 from metagpt.logs import logger

@@ -18,8 +18,9 @@ async def root():
     return """
     <style>
         html { background-color: black; color: white; font-family: Arial; }
+        h1 { font-weight: bold; }
         a { text-decoration: none; color: #fcba03; font-weight: bold; }
-        body { margin: 5rem; }
+        body { margin: 2rem; }
     </style>
     <body>
         <h1>Welcome to Lumin API</h1>
