@@ -80,12 +80,13 @@ class SuperviseVoteAction(BaseDynamicAction):
     async def run(self, **kwargs):
         answers = '\n\n'.join('ANSWER ' + str(i) + ':\n' + response
                               for i, response in enumerate(kwargs.get("responses"))) + '\n\n'
-        prompt = 'In the following section you will be given a prompt and multiple answers to the prompt by ' \
-                 'AI ChatBots.\nPlease decide as to which answer is the best and most appropriate.\n' \
-                 f'Under all circumstances answer with the following JSON:\n' \
-                 '{"chosen": index}\nChange index to the index of the best answer.\n\n' \
-                 f'The original Prompt is as follows:\n{kwargs.get("prompt")}\n\n' \
-                 f'The answers are as follows:\n\n' + answers
+        prompt = ('In the following section you will be given a prompt and multiple answers to the prompt by ' \
+                  'AI ChatBots.\nPlease decide as to which answer is the best and most appropriate.\n' \
+                  f'Under all circumstances answer with the following JSON:\n' \
+                  '{"chosen": index}\nChange index to the index of the best answer.\n' \
+                  'UNDER NO CIRCUMSTANCES ANSWER IN ANY DIFFERENT WAY OR ADD ANY ADDITIONAL TEXT\n\n' \
+                  f'The original Prompt is as follows:\n{kwargs.get("prompt")}\n\n' \
+                  f'The answers are as follows:\n\n' + answers)
         rsp = await self._aask(prompt)
         return rsp
 
@@ -121,7 +122,8 @@ class SupervisorRole(BaseRole):
 
         try:
             rsp.content = json.loads(rsp.content)
-            if not rsp.content.get('chosen'):
+            if not isinstance(rsp.content.get('chosen'), int):
+                print('[bold orange]no answer chosen[/]')
                 raise ValueError("No answer chosen")
         except (json.JSONDecodeError, ValueError):
             print(f'[bold red]invalid feedback from supervisor[/]')
