@@ -1,1 +1,5 @@
 .idea
+venv/
+metagpt/
+workspace/
+logs/
