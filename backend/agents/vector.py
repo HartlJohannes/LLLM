@@ -1,3 +1,4 @@
 """
-Implements vector database access
+Implements vector database integration and access
 """
+
