@@ -113,7 +113,7 @@ async def send_nosession(prompt: str):
     :param prompt: message
     :return: response from team
     """
-    team = sessions.Team(agents=[sessions.ChatRole()], supervisors=[sessions.SupervisorRole()])
+    team = sessions.Team(agents=[sessions.ChatRole(), sessions.ChatRole()], supervisors=[sessions.SupervisorRole()])
     return await team(prompt)
 
 
