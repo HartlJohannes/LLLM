@@ -20,6 +20,7 @@ tables = {
         Column("uid", Integer, primary_key=True),
         Column("config_uid", Integer),
         Column("session_key", String),
+        Column("name", String, nullable=True),
         Column("team", Text, nullable=False),
         extend_existing=True,
     ),
@@ -30,13 +31,15 @@ metadata.create_all(bind=engine)
 
 
 class Session:
-    def __init__(self, config_uid: int, session_key: str | None = None, uid: int | None = None):
+    def __init__(self, config_uid: int, session_key: str | None = None, uid: int | None = None, name: str | None = None):
         # configuration uid
         self.config_uid = config_uid
         # session key
         self.key = session_key or self.__gen_session_key()
         # session uid
         self.uid = uid
+        # name
+        self.name = name
 
         self._config = Configuration.grab(config_uid)
         self._agent_count = self._config.agent_count
@@ -52,7 +55,7 @@ class Session:
         if self._team:
             # team already loaded into memory
             return self._team
-
+        print(self.exists)
         if self.exists:
             # find the team in database and load it into memory
             with engine.connect() as conn:
@@ -100,14 +103,20 @@ class Session:
                     session_table.update().where(session_table.c.uid == self.uid).values(
                         session_key=self.key,
                         config_uid=self.config_uid,
-                        team=pickle.dumps(self._team, protocol=None, fix_imports=True, buffer_callback=None)
+                        team=pickle.dumps(self._team, protocol=None, fix_imports=True, buffer_callback=None),
+                        name=self.name
                     )
                 )
                 self.uid = rows.inserted_primary_key[0]
             else:
                 # insert row into database
                 conn.execute(
-                    session_table.insert().values(config_uid=self.config_uid, session_key=self.key, team=pickle.dumps(self._team, protocol=None, fix_imports=True, buffer_callback=None))
+                    session_table.insert().values(
+                        config_uid=self.config_uid,
+                        session_key=self.key,
+                        team=pickle.dumps(self._team, protocol=None, fix_imports=True, buffer_callback=None),
+                        name=self.name
+                    )
                 )
                 conn.commit()
 
@@ -165,11 +174,15 @@ class Session:
         # search in database
         with engine.connect() as conn:
             row = conn.execute(
-                sql.select(session_table.c.config_uid, session_table.c.session_key).where(session_table.c.uid == uid)
+                sql.select(
+                    session_table.c.config_uid,
+                    session_table.c.session_key,
+                    session_table.c.name
+                ).where(session_table.c.uid == uid)
             ).first()
             if not row:
                 return None
-            return Session(row[0],  row[1])
+            return Session(row[0],  row[1], name=row[2])
 
     @staticmethod
     def find(session_key: str):
@@ -184,12 +197,15 @@ class Session:
         # search in database
         with engine.connect() as conn:
             row = conn.execute(
-                sql.select(session_table.c.config_uid, session_table.c.session_key)
-                .where(session_table.c.session_key == session_key)
+                sql.select(
+                    session_table.c.config_uid,
+                    session_table.c.session_key,
+                    session_table.c.name
+                ).where(session_table.c.session_key == session_key)
             ).first()
             if not row:
                 return None
-            return Session(row[0], row[1])
+            return Session(row[0], row[1], name=row[2])
 
     @staticmethod
     def __gen_session_key():

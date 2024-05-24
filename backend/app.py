@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from pydantic import BaseModel
 from configurations import Configuration
 from agents import sessions
+from argparse import ArgumentParser
 
 app = FastAPI()
 
@@ -160,5 +161,12 @@ async def list_sessions():
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser(
+        prog='Lumin',
+        description="Lumin API server",
+        epilog="Lumin API server help"
+    )
+    #parser.add_argument()
+
     # run app (duh!)
     uvicorn.run(app, host="0.0.0.0")  #, port=8080)
