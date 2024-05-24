@@ -183,6 +183,21 @@ class Configuration:
                 )
             conn.commit()
 
+    @staticmethod
+    def list():
+        """
+        List all configurations in the database
+
+        :return: list of configurations
+        """
+        # table for configurations
+        cfg_table: Table = tables["configurations"]
+        with engine.connect() as conn:
+            result = conn.execute(
+                sql.select(cfg_table.c.uid)
+            )
+            return [row[0] for row in result]
+
     def __repr__(self):
         return f"Configuration(agent_count={self.agent_count}, supervisor_count={self.supervisor_count}, uid={self.uid})"
 

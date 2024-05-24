@@ -163,6 +163,16 @@ async def list_sessions():
     return sessions.Session.list()
 
 
+@app.post("/cfg/list")
+def list_configs():
+    """
+    List all configurations
+
+    :return: list of configuration uids
+    """
+    return Configuration.list()
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(
         prog='Lumin',
