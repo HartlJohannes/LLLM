@@ -199,15 +199,5 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', default=3000, type=int, dest='port')
     args = parser.parse_args()
 
-    async def main():
-        print('searching')
-        session = sessions.Cache.locate('f8716a63-1991-47af-ab8f-826f7476c723')
-        print(session)
-        await session.send('Tell me about rocks')
-        session2 = sessions.Cache.locate('f8716a63-1991-47af-ab8f-826f7476c723')
-        print(session, session2)
-        print(session2.team.history)
-    #asyncio.run(main())
-
     # run app (duh!)
     uvicorn.run(app, host="0.0.0.0", port=args.port)
