@@ -5,7 +5,6 @@ from configurations import Configuration
 
 app = FastAPI()
 
-
 @app.get("/status")
 def read_root():
     return {"status": "up"}
