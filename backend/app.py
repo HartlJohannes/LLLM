@@ -121,6 +121,7 @@ async def send_with_context(session_key: str, prompt: str):
         return HTTPException(status_code=400, detail="session not found")
     context = rag.query_docs(prompt)
     prompt = f'{prompt}\n\nIf relevant, use the following context:\n{context}'
+    print(prompt)
     return await session.send(prompt)
 
 
