@@ -3,6 +3,10 @@ import weaviate
 import weaviate.classes as wvc
 from weaviate.classes.config import Property, DataType
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+import pymupdf
+from pathlib import Path
+
+THIS_DIR = Path(__file__).parent
 
 # Initialize the ollama client
 ollama_client = ollama.Client("https://7e28-188-241-30-201.ngrok-free.app/api")
@@ -51,3 +55,32 @@ def query_docs(prompt: str) -> list[str]:
     response = ollama_client.embeddings(model="all-minilm", prompt=prompt)
     results = collection.query.near_vector(near_vector=response["embedding"], limit=5)
     return [result.properties['text'] for result in results.objects]
+
+def process_pdf(doc: pymupdf.Document):
+    """
+    Extract text from a PDF document (also from images)
+
+    :param doc: PDF document
+    """
+    for page in doc:
+        #print(page.get_text())
+        pass
+
+    text = '\n\n'.join(page.get_text() for page in doc)
+    ingest_chunks(chunk_doc(text))
+    return text
+
+
+async def ingest(file):
+    """
+    Ingest data from the database
+
+    :param file: file to ingest
+    """
+    filepath = f'{THIS_DIR}/pdfs/{file.filename}'
+    # save pdf
+    with open(filepath, 'wb') as f:
+        f.write(await file.read())
+
+    doc = pymupdf.open(filepath)
+    process_pdf(doc)
