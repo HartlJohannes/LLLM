@@ -2,6 +2,7 @@ from agents.templates import BaseRole, BaseDynamicAction
 from metagpt.schema import Message
 import json
 from rich import print
+import asyncio
 
 
 class ChatAction(BaseDynamicAction):
@@ -186,8 +187,11 @@ class Team:
         :return: supervisor feedbacks
         """
         feedbacks: list[dict] = list()
+        promises = list()
         for supervisor in self.supervisors:
-            feedbacks.append((await supervisor.run(prompt=prompt, answer=answer, chat_history=chat_history)).content)
+            promises.append(supervisor.run(prompt=prompt, answer=answer, chat_history=chat_history))
+        for result in asyncio.gather(promises):
+            feedbacks.append(result.content)
 
         return feedbacks
 
@@ -219,8 +223,11 @@ class Team:
         :return: list of new responses
         """
         responses: list[str] = list()
+        promises = list()
         for feedbacks, agent in zip(response_feedbacks, self.agents):
-            responses.append(await Team.__supervised_run(prompt, feedbacks, agent))
+            promises.append(self.__supervised_run(prompt, feedbacks, agent))
+        for result in asyncio.gather(promises):
+            responses.append(result)
 
         return responses
 
@@ -233,10 +240,12 @@ class Team:
         :return: list of feedbacks
         """
         response_feedbacks: list[list[dict]] = list()
+        promises = list()
         for i, (response, agent) in enumerate(zip(responses, self.agents)):
-            feedbacks = await self.__supervisors_run(prompt=prompt, answer=response,
-                                                     chat_history=agent.get_chat_history())
-            response_feedbacks.append(feedbacks)
+            promises.append(self.__supervisors_run(prompt=prompt, answer=response,
+                                                   chat_history=agent.get_chat_history()))
+        for result in asyncio.gather(promises):
+            response_feedbacks.append(result)
         return response_feedbacks
 
     async def __supervisor_vote(self, prompt: str, responses: list[str]) -> str:
@@ -249,8 +258,11 @@ class Team:
         """
         # gather votes
         votes: list[int] = list()
+        promises = list()
         for supervisor in self.supervisors:
-            votes.append((await supervisor.vote(prompt, responses)).content.get('chosen'))
+            promises.append(supervisor.vote(prompt, responses))
+        for result in asyncio.gather(promises):
+            votes.append(result.content.get('chosen'))
 
         # get response with most votes
         # if it's a tie, a random one will be chosen
@@ -281,10 +293,13 @@ class Team:
             """
         # gather initial responses
         responses: list[str] = list()
+        promises = list()
         print('[bold cyan] Generate initial responses for prompt [/]')
         for i, agent in enumerate(self.agents):
-            responses.append((await agent.run(prompt=prompt)).content)
+            promises.append(agent.run(prompt=prompt))
             print(f'> {i + 1}/{len(self.agents)}')
+        for result in asyncio.gather(promises):
+            responses.append(result.content)
 
         # gather feedbacks
         print(f'[bold cyan] Generate initial feedback for responses [/]')
