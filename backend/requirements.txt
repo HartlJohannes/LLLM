@@ -5,3 +5,5 @@ sqlalchemy
 metagpt
 rich
 pymupdf
+weaviate-client
+ollama
