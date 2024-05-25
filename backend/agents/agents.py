@@ -274,11 +274,11 @@ class Team:
 
     async def __run(self, prompt) -> str:
         """
-                Generate output for the prompt
+            Generate output for the prompt
 
-                :param prompt: Prompt to generate output for
-                :return: str
-                """
+            :param prompt: Prompt to generate output for
+            :return: str
+            """
         # gather initial responses
         responses: list[str] = list()
         print('[bold cyan] Generate initial responses for prompt [/]')
@@ -292,12 +292,16 @@ class Team:
 
         # iterate over and over until we get a correct response
         print(f'[bold cyan]Iterating over responses using supervisors if needed[/]')
+        max_iter = 6
         i = 0
-        while not (correct_responses := await Team.__check_response_feedbacks(responses, response_feedbacks)):
+        while not (correct_responses := await Team.__check_response_feedbacks(responses, response_feedbacks)) and i < max_iter:
             print(f'Current Iteration: {i}')
             i += 1
             responses = await self.__supervised_run_all(prompt, response_feedbacks)
-            response_feedbacks = await self.__supervisor_judge(prompt, responses)
+            if i < max_iter:
+                response_feedbacks = await self.__supervisor_judge(prompt, responses)
+            else:
+                correct_responses = responses
         print(f'[bold green]Correct responses have been generated[/]')
 
         # if there is more than one agreed upon response, let the supervisors vote
