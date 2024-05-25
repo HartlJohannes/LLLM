@@ -1,9 +1,11 @@
 setuptools
-fastapi
-uvicorn
-sqlalchemy
+langchain
+weaviate-client
 metagpt
 rich
 pymupdf
-weaviate-client
 ollama
+pydantic
+fastapi
+uvicorn
+sqlalchemy
