@@ -294,7 +294,7 @@ class Team:
         print(f'[bold cyan]Iterating over responses using supervisors if needed[/]')
         max_iter = 6
         i = 0
-        while not (correct_responses := await Team.__check_response_feedbacks(responses, response_feedbacks)) and i < max_iter:
+        while i < max_iter and not (correct_responses := await Team.__check_response_feedbacks(responses, response_feedbacks)):
             print(f'Current Iteration: {i}')
             i += 1
             responses = await self.__supervised_run_all(prompt, response_feedbacks)
