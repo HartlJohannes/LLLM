@@ -107,7 +107,7 @@ async def send_session(session_key: str, prompt: str):
     return await session.send(prompt)
 
 
-@app.get('/session/send-with-context')
+@app.post('/session/send-with-context')
 async def send_with_context(session_key: str, prompt: str):
     """
     Send a message to team in a session with context from the vector database
@@ -122,6 +122,20 @@ async def send_with_context(session_key: str, prompt: str):
     context = rag.query_docs(prompt)
     prompt = f'{prompt}\n\nIf relevant, use the following context:\n{context}'
     return await session.send(prompt)
+
+
+@app.post('/nosession/send-with-context')
+async def nosession_with_context(prompt: str):
+    """
+    Send a message to a team without a session with context from the vector database
+
+    :param prompt: message
+    :return: response from team
+    """
+    context = rag.query_docs(prompt)
+    prompt = f'{prompt}\n\nIf relevant, use the following context:\n{context}'
+    team = sessions.Team(agents=[sessions.ChatRole(), sessions.ChatRole()], supervisors=[sessions.SupervisorRole()])
+    return await team(prompt)
 
 
 @app.post("/nosession/send")
@@ -216,4 +230,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # run app (duh!)
+    print('[bold green]Starting Lumin API server[/]')
     uvicorn.run(app, host="0.0.0.0", port=args.port)
