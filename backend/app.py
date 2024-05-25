@@ -1,11 +1,12 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import RedirectResponse, HTMLResponse
 from pydantic import BaseModel
 from configurations import Configuration
 from agents import sessions
 from pathlib import Path
 from argparse import ArgumentParser
+import rag
 import asyncio
 
 THIS_DIR = Path(__file__).parent
@@ -164,13 +165,27 @@ async def list_sessions():
 
 
 @app.post("/cfg/list")
-def list_configs():
+async def list_configs():
     """
     List all configurations
 
     :return: list of configuration uids
     """
     return Configuration.list()
+
+
+@app.put('/ingest')
+async def ingest(file: UploadFile):
+    """
+    Ingest data from the database
+
+    :param file: file to ingest
+    """
+    try:
+        await rag.ingest(file)
+    except Exception as e:
+        return HTTPException(status_code=500, detail=e)
+    return {'status': 'ok'}
 
 
 if __name__ == "__main__":
