@@ -56,6 +56,7 @@ def query_docs(prompt: str) -> list[str]:
     results = collection.query.near_vector(near_vector=response["embedding"], limit=5)
     return [result.properties['text'] for result in results.objects]
 
+
 def process_pdf(doc: pymupdf.Document):
     """
     Extract text from a PDF document (also from images)
@@ -66,7 +67,7 @@ def process_pdf(doc: pymupdf.Document):
         #print(page.get_text())
         pass
 
-    text = '\n\n'.join(page.get_text() for page in doc)
+    text = '\n\n'.join([page.get_text() for page in doc])
     ingest_chunks(chunk_doc(text))
     return text
 
@@ -79,7 +80,7 @@ async def ingest(file):
     """
     filepath = f'{THIS_DIR}/pdfs/{file.filename}'
     # save pdf
-    with open(filepath, 'wb') as f:
+    with open(filepath, 'wb+') as f:
         f.write(await file.read())
 
     doc = pymupdf.open(filepath)
