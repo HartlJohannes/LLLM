@@ -1,0 +1,12 @@
+html {
+    --black: #121212;
+    --black2: #1a1a1a;
+    --green: #5cd67d;
+    --green2: #32a852;
+    --red: #e9002b;
+    --yellow: #faa916;
+    --purple: #a96da3;
+
+    background-color: var(--black2);
+    color: white;
+}

@@ -1,0 +1,77 @@
+.wtf {
+}
+.wtf-heading {
+    font-family: "Object Sans";
+    margin-bottom: 3rem;
+}
+.wtf-input {
+    background-color: var(--green);
+    color: black;
+
+    padding: 1rem 1.5rem;
+    border-radius: 5rem;
+    width: 20vw;
+
+    outline: none;
+    border: none;
+
+    transition: .5s;
+}
+.wtf-input:hover, .wtf-input:focus, .wtf-input:active, {
+    width: 30vw;
+}
+.wtf-input[disabled] {
+    background-color: var(--yellow);
+    animation: color-shift 2s infinite;
+}
+@keyframes color-shift {
+    0% {
+        background-color: var(--yellow);
+    }
+    50% {
+        background-color: #ffbb3d;
+    }
+    100% {
+        background-color: var(--yellow);
+    }
+}
+
+
+.wtf-error {
+    position: relative;
+
+    margin-top: 5rem;
+    padding: 1rem;
+
+    width: 50vw;
+    left: 50%;
+    transform: translateX(-50%);
+    justify-self: center;
+
+    border-radius: 1rem;
+    background-color: var(--black);
+    color: #d0d0d0;
+
+    text-align: left;
+}
+.wtf-error>p {
+    display: grid;
+    grid-template-columns: 10rem 1fr;
+    gap: 2rem;
+}
+
+.log-errors {
+    transform: translateY(-5rem);
+}
+.log-error {
+    margin: 1rem;
+}
+.wtf-error-timestamp {
+    color: var(--purple);
+    text-align: right;
+}
+
+.wtf-error-category {
+    color: var(--red);
+    text-align: right;
+}

@@ -1,0 +1,35 @@
+.landing-img {
+    position: absolute;
+    z-index: -1;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(calc(-50% - 8rem), calc(-50% - 8rem));
+    animation: float 5s infinite;
+
+    height: 30vh;
+}
+
+@keyframes float {
+    0% {
+        transform: translate(calc(-50% - 5rem), calc(-50% - 6rem));
+    }
+    25% {
+        transform: translate(calc(-50% - 5rem), calc(-50% - 8rem));
+    }
+    50% {
+        transform: translate(calc(-50% - 8rem), calc(-50% - 5rem));
+    }
+    75%{
+        transform: translate(calc(-50% - 2rem), calc(-50% - 5rem));
+    }
+    100% {
+        transform: translate(calc(-50% - 5rem), calc(-50% - 6rem));
+    }
+}
+
+.landing {
+    margin-top: 6rem;
+    font-size: 2rem;
+}
