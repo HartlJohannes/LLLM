@@ -91,6 +91,7 @@ async def read_session(session_key: str):
         return HTTPException(status_code=400, detail='session not found')
     return await session.history()
 
+
 @app.post("/session/send")
 async def send_session(session_key: str, prompt: str):
     """
@@ -103,6 +104,23 @@ async def send_session(session_key: str, prompt: str):
     session = sessions.Cache.locate(session_key)
     if not session:
         return HTTPException(status_code=400, detail="session not found")
+    return await session.send(prompt)
+
+
+@app.get('/session/send-with-context')
+async def send_with_context(session_key: str, prompt: str):
+    """
+    Send a message to team in a session with context from the vector database
+
+    :param session_key: session key
+    :param prompt: message
+    :return: response from session team
+    """
+    session = sessions.Cache.locate(session_key)
+    if not session:
+        return HTTPException(status_code=400, detail="session not found")
+    context = rag.query_docs(prompt)
+    prompt = f'{prompt}\n\nIf relevant, use the following context:\n{context}'
     return await session.send(prompt)
 
 
