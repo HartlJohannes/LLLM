@@ -1,5 +1,4 @@
 from agents.agents import ChatRole, SupervisorRole
-import agents.vector as vector
 import asyncio
 from agents import Team
 from metagpt.logs import logger
@@ -26,7 +25,12 @@ async def test_vector():
     Test the vector database integration
     """
     print('[bold green]Starting vector test[/]')
-    pass
+    try:
+        import rag
+    except Exception as e:
+        print(f'[bold red]Error: {e}[/]')
+        return
+    print('[bold green]Vector test complete[/]')
 
 
 if __name__ == '__main__':
